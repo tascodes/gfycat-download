@@ -18,26 +18,41 @@ impl DownloadClient {
     // Downloads all posts in the WEBM format to the base local directory
     pub async fn download_webms(&self, posts: &Vec<GfycatPost>) -> Result<(), reqwest::Error> {
         println!("Downloading {} posts", posts.len());
+
+        let mut successful_downloads: u16 = 0;
+        let mut failures: Vec<String> = vec![];
         for post in posts {
             println!("Downloading post {} with ID {}", post.title, post.gfy_id);
 
             if let Ok(bytes) = self.fetch_webm(&post.webm_url).await {
                 if let Ok(mut file) = File::create(format!("{}.webm", &post.title)) {
                     if let Err(e) = file.write_all(&bytes) {
-                        eprintln!("Failed to write to file {}.webm:\n{}", &post.title, e)
+                        failures.push(format!(
+                            "Failed to write to file {}.webm:\n{}",
+                            &post.title, e
+                        ));
+                    } else {
+                        successful_downloads += 1;
                     }
                 } else {
-                    eprintln!("Failed to create file {}.webm", &post.title);
+                    failures.push(format!("Failed to create file {}.webm", &post.title));
                 }
             } else {
-                eprintln!(
+                failures.push(format!(
                     "Failed to download file {} from URL {}",
                     &post.title, post.webm_url
-                )
+                ));
             }
         }
 
-        println!("Downloaded and saved all posts.");
+        println!("Successfully downloaded {} posts.", successful_downloads);
+
+        if failures.len() > 0 {
+            eprintln!("Some downloads failed:");
+            for message in failures {
+                eprintln!("{}", message);
+            }
+        }
 
         Ok(())
     }
