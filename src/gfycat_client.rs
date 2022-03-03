@@ -60,7 +60,7 @@ impl GfycatClient {
         let http_client = Client::builder()
             .timeout(std::time::Duration::from_secs(10))
             .build()
-            .unwrap();
+            .expect("Failed to create http client for Gfycat.");
 
         Self {
             http_client,

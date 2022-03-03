@@ -18,7 +18,7 @@ pub fn get_configuration() -> Result<Settings, std::io::Error> {
     let settings = Config::builder()
         .add_source(config::Environment::with_prefix("GFYCAT"))
         .build()
-        .unwrap();
+        .expect("Failed to load settings");
 
     let r = match settings.try_deserialize::<Settings>() {
         Err(_) => prompt_for_settings(),
