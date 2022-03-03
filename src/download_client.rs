@@ -20,13 +20,21 @@ impl DownloadClient {
         println!("Downloading {} posts", posts.len());
         for post in posts {
             println!("Downloading post {} with ID {}", post.title, post.gfy_id);
-            let bytes = self.fetch_webm(&post.webm_url).await?;
 
-            // let filepath = &path.join(format!("{}.webm", post.title).as_str());
-            let mut file = File::create(format!("{}.webm", &post.title))
-                .expect(format!("Failed to create file output/gifs/{}.webm", &post.title).as_str());
-            file.write_all(&bytes)
-                .expect("Failed to write contents to file.");
+            if let Ok(bytes) = self.fetch_webm(&post.webm_url).await {
+                if let Ok(mut file) = File::create(format!("{}.webm", &post.title)) {
+                    if let Err(e) = file.write_all(&bytes) {
+                        eprintln!("Failed to write to file {}.webm:\n{}", &post.title, e)
+                    }
+                } else {
+                    eprintln!("Failed to create file {}.webm", &post.title);
+                }
+            } else {
+                eprintln!(
+                    "Failed to download file {} from URL {}",
+                    &post.title, post.webm_url
+                )
+            }
         }
 
         println!("Downloaded and saved all posts.");
