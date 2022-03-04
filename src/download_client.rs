@@ -58,15 +58,12 @@ impl DownloadClient {
     }
 
     async fn fetch_webm(&self, url: &String) -> Result<bytes::Bytes, reqwest::Error> {
-        let bytes = self
-            .http_client
+        self.http_client
             .get(url)
             .send()
             .await?
             .error_for_status()?
             .bytes()
-            .await?;
-
-        Ok(bytes)
+            .await
     }
 }
